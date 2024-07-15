@@ -1,0 +1,27 @@
+---
+- name: Instalar git, docker-compose y jq
+  hosts: all
+  become: yes  # Esto permite que Ansible ejecute comandos con privilegios de superusuario
+
+  tasks:
+    - name: Instalar git
+      yum:
+        name: git
+        state: present
+
+    - name: Instalar dependencias para docker-compose
+      yum:
+        name:
+          - python3-pip
+          - python3-devel
+        state: present
+
+    - name: Instalar docker-compose usando pip
+      pip:
+        name: docker-compose
+        state: present
+
+    - name: Instalar jq
+      yum:
+        name: jq
+        state: present

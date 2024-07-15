@@ -1,0 +1,50 @@
+pipeline {
+    agent any
+    
+    environment {
+        GIT_REPO = 'https://github.com/tu_usuario/tu_repositorio.git'
+        DOCKER_IMAGE = 'tu_imagen:${BUILD_NUMBER}'
+        JFROG_REPO = 'tu_repositorio_jfrog'
+        JFROG_CREDS = credentials('jfrog-credentials')
+    }
+    
+    stages {
+        stage('Clonar Repositorio') {
+            steps {
+                git url: "${GIT_REPO}"
+            }
+        }
+        
+        stage('Construir Imagen') {
+            steps {
+                script {
+                    docker.build("${DOCKER_IMAGE}")
+                }
+            }
+        }
+        
+        stage('Subir Imagen a JFROG') {
+            steps {
+                script {
+                    docker.withRegistry('https://tu_servidor_jfrog.com', JFROG_CREDS) {
+                        docker.image("${DOCKER_IMAGE}").push()
+                    }
+                }
+            }
+        }
+        
+        stage('Desplegar Contenedor') {
+            steps {
+                script {
+                    sh "docker run -d --name mi_app_${BUILD_NUMBER} ${DOCKER_IMAGE}"
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
